@@ -6,27 +6,46 @@ const app = express();
 const http = require('http');
 const httpServer = http.createServer(app);
 
+const uuid = require('uuid');
+const randomWords = require('random-words')
+const crypto = require("crypto");
+const cookie = require("cookie");
+
+const CONFIG = {
+    CORS_WHITELIST: ['http://192.168.59.1:21627', 'http://192.168.59.1:21999'],
+    sessionMiddlewareCookieName: 'ALLTALE_SESSION',
+    sessionMiddlewareCookieSecret: 'ALLTALE',
+    sessionMiddlewareCookieOptions: {
+        // maxAge: 60000,
+        httpOnly: false,
+        domain: '192.168.59.1',
+    }
+}
 const io = require('socket.io')(httpServer, {
     path: '/alltale-core',
     cors: {
-        origin: '*'
+        origin: function (origin, callback) {
+            if (CONFIG.CORS_WHITELIST.indexOf(origin) !== -1) {
+                callback(null, true)
+            } else {
+                callback(new Error('Not allowed by CORS'))
+            }
+        },
+        credentials: true,
     }
 });
 
 const sessionMiddleware = session({
-    name: 'ALLTALE_SESSION',
-    secret: 'ALLTALE',
+    name: CONFIG.sessionMiddlewareCookieName,
+    secret: CONFIG.sessionMiddlewareCookieSecret,
     resave: true,
     saveUninitialized: true,
-    cookie: {maxAge: 60000},
+    cookie: CONFIG.sessionMiddlewareCookieOptions,
     store: new LevelStore('./data/sessions'),
     genid: function (req) {
         return uuid.v4()
     }
 })
-
-const uuid = require('uuid');
-const randomWords = require('random-words')
 
 function rdm(min = 0, max = 1, fix = 2) {
     let ratio = max - min;
@@ -45,28 +64,72 @@ app.get('/', (req, res) => {
 });
 
 io.use((socket, next) => {
-    sessionMiddleware(socket.request, {}, next);
+    // sessionMiddleware(socket.request, {}, next);
+    sessionMiddleware(socket.request, socket.request.res, next);
 });
+
+class utils {
+    constructor(io) {
+        this.io = io
+    }
+
+    getSocketsByIdentity(id, room = '') {
+        let foundSockets = []
+        for (const socket of this.io.of(room).sockets) {
+            // console.log(socket[0])
+            if (socket[1].data.identity) {
+                if (socket[1].data.identity.id === id) foundSockets.push(socket[1]);
+            }
+        }
+        return foundSockets.length > 0 ? foundSockets : null;
+    }
+
+    cookieSign(val, secret) {
+        if ('string' != typeof val) throw new TypeError("Cookie value must be provided as a string.");
+        if ('string' != typeof secret) throw new TypeError("Secret string must be provided.");
+        return val + '.' + crypto
+            .createHmac('sha256', secret)
+            .update(val)
+            .digest('base64')
+            .replace(/\=+$/, '');
+    };
+}
+
+const util = new utils(io)
 
 io.on('connection', (socket) => {
     const session = socket.request.session;
 
-    socket.emit('message:global', `${session.lastMessage}`);
+    /* Send cookie */
+    socket.emit('session:update-cookie', cookie.serialize(
+        CONFIG.sessionMiddlewareCookieName,
+        `s:${util.cookieSign(session.id, CONFIG.sessionMiddlewareCookieSecret)}`,
+        CONFIG.sessionMiddlewareCookieOptions)
+    );
 
-    if (!socket.data.identity) socket.data.identity = {}
-    socket.data.identity.id = `${randomWords({
-        exactly: 1,
-        maxLength: 8,
-        formatter: word => word.toUpperCase()
-    })}#${rdm(1000, 9999, 0)}`;
+    /* Assign identity */
+    if (!session.identity) {
+        session.identity = {}
+        session.identity.id = `${randomWords({
+            exactly: 1,
+            maxLength: 8,
+            formatter: word => word.toUpperCase()
+        })}#${rdm(1000, 9999, 0)}`;
+        session.save();
+    }
+    socket.data.identity = session.identity;
+
+    /* Terminate other sockets has same identity */
+    util.getSocketsByIdentity(socket.data.identity.id).forEach(existsSocket => {
+        if (existsSocket.id !== socket.id) existsSocket.emit('session:conflict')
+    })
+
+    socket.emit('message:global', JSON.stringify(session.identity))
     socket.emit('user:update-info', socket.data.identity);
     console.log(`Client connected [${socket.id}]:[${socket.data.identity.id}]`);
     socket.on('message:global', async (msg) => {
-        session.lastMessage = msg;
-        session.save();
         io.emit('message:global', `[${socket.data.identity.id}]: ${msg}`);
         console.log(`Message from [${socket.id}]: ${msg}`);
-        console.log(session.lastMessage)
     });
     socket.on('disconnect', () => {
         console.log(`Client disconnected [${socket.id}]`);
