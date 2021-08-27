@@ -3,7 +3,8 @@ module.exports = {
     name: 'ALLTALE_SERVER',
     script: 'app.js',
     env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        ALLTALE_PORT: 29999
     }
   }],
 
