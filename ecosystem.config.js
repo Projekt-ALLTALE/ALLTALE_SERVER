@@ -18,7 +18,7 @@ module.exports = {
             host: '42.193.21.101',
             ref: 'origin/main',
             repo: 'git@github.com:Projekt-ALLTALE/ALLTALE_SERVER.git',
-            path: '~/Projects/ALLTALE_SERVER',
+            path: '~/Project/ALLTALE_SERVER',
             'pre-deploy-local': '',
             'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production',
             'pre-setup': ''
