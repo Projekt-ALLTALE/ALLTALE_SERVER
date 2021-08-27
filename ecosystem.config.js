@@ -14,7 +14,7 @@ module.exports = {
 
     deploy: {
         production: {
-            key: 'F:/sshkeys/0x0.pub',
+            key: '~/.ssh/id_rsa.pub',
             user: 'root',
             host: '42.193.21.101',
             ref: 'origin/main',
