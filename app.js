@@ -18,7 +18,7 @@ const CONFIG = {
     sessionMiddlewareCookieOptions: {
         // maxAge: 60000,
         httpOnly: false,
-        domain: '192.168.59.1',
+        domain: process.env.ALLTALE_HOST || '192.168.59.1',
     }
 }
 const io = require('socket.io')(httpServer, {
