@@ -14,7 +14,7 @@ module.exports = {
 
     deploy: {
         production: {
-            user: 'hoshinosuzumi',
+            user: 'root',
             host: '42.193.21.101',
             ref: 'origin/main',
             repo: 'git@github.com:Projekt-ALLTALE/ALLTALE_SERVER.git',
