@@ -12,7 +12,7 @@ const crypto = require("crypto");
 const cookie = require("cookie");
 
 const CONFIG = {
-    CORS_WHITELIST: ['http://192.168.59.1:21627', 'http://192.168.59.1:21999'],
+    CORS_WHITELIST: ['http://192.168.59.1:21627', 'http://192.168.59.1:3000'],
     sessionMiddlewareCookieName: 'ALLTALE_SESSION',
     sessionMiddlewareCookieSecret: 'ALLTALE',
     sessionMiddlewareCookieOptions: {
@@ -136,7 +136,6 @@ io.on('connection', (socket) => {
     });
 });
 
-
-httpServer.listen(21611, () => {
+httpServer.listen(process.env.ALLTALE_PORT || 21611, () => {
     console.log('ALLTALE is listening on *:21611');
 });
