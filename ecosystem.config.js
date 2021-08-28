@@ -9,6 +9,7 @@ module.exports = {
             NODE_ENV: 'production',
             ALLTALE_HOST: 'alltale.i0x0i.ltd',
             ALLTALE_PORT: 29999,
+            CORS_WHITELIST: ['http://alltale.i0x0i.ltd:29998']
         }
     }],
 

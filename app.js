@@ -13,7 +13,6 @@ const cookie = require("cookie");
 
 const CONFIG = {
     CORS_WHITELIST: [
-        process.env.ALLTALE_HOST ? `http://${process.env.ALLTALE_HOST}` : 'localhost',
         'http://192.168.59.1:21627',
         'http://192.168.59.1:3000'
     ],
@@ -24,6 +23,9 @@ const CONFIG = {
         httpOnly: false,
         domain: process.env.ALLTALE_HOST || '192.168.59.1',
     }
+}
+if (process.env.CORS_WHITELIST) {
+    CONFIG.CORS_WHITELIST.push(...process.env.CORS_WHITELIST)
 }
 console.log(CONFIG.CORS_WHITELIST.join(', '))
 const io = require('socket.io')(httpServer, {
