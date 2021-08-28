@@ -21,6 +21,7 @@ const CONFIG = {
         domain: process.env.ALLTALE_HOST || '192.168.59.1',
     }
 }
+console.log(CONFIG.CORS_WHITELIST.join(', '))
 const io = require('socket.io')(httpServer, {
     path: '/alltale-core',
     cors: {
