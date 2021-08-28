@@ -25,7 +25,7 @@ const CONFIG = {
     }
 }
 if (process.env.CORS_WHITELIST) {
-    CONFIG.CORS_WHITELIST.push(...process.env.CORS_WHITELIST)
+    CONFIG.CORS_WHITELIST.push(process.env.CORS_WHITELIST)
 }
 console.log(CONFIG.CORS_WHITELIST.join(', '))
 const io = require('socket.io')(httpServer, {
