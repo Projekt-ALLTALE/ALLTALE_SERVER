@@ -12,7 +12,7 @@ const crypto = require("crypto");
 const cookie = require("cookie");
 
 const CONFIG = {
-    CORS_WHITELIST: ['http://192.168.59.1:21627', 'http://192.168.59.1:3000'],
+    CORS_WHITELIST: [process.env.ALLTALE_HOST || 'localhost', 'http://192.168.59.1:21627', 'http://192.168.59.1:3000'],
     sessionMiddlewareCookieName: 'ALLTALE_SESSION',
     sessionMiddlewareCookieSecret: 'ALLTALE',
     sessionMiddlewareCookieOptions: {
