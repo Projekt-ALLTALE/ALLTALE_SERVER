@@ -133,8 +133,9 @@ io.on('connection', (socket) => {
 
     /* Online broadcast */
     io.emit('broadcast:online', JSON.stringify({
-        online: io.of('/').sockets.length
+        online: io.of('/').sockets.size || null
     }));
+    console.log('🔈 Broadcast online: ', io.of('/').sockets.size)
 
     /* Welcome */
     socket.emit('message:lobby', JSON.stringify({
