@@ -156,33 +156,33 @@ io.on('connection', (socket) => {
             message: '请不要发送空白消息',
             warn: true
         }));
-        // if (msg.startsWith('login')) {
-        //     let arr = msg.split('@')
-        //     if (arr.length === 3) {
-        //         console.log(process.env)
-        //         console.log(process.env.ALLTALE_ADMIN)
-        //         if (arr[1] === (process.env.ALLTALE_ADMIN || 'ADMIN') &&
-        //             arr[2] === (process.env.ALLTALE_ADMIN_PWD || 'ADMIN')) {
-        //             session.identity.id = `${arr[1]}#管理员`;
-        //             session.identity.isAdmin = true;
-        //             session.save();
-        //             socket.data.identity = session.identity;
-        //             socket.emit('user:update-info', socket.data.identity);
-        //             return socket.emit('message:lobby', JSON.stringify({
-        //                 sender: 'ALLTALE',
-        //                 time: new Date().getTime(),
-        //                 message: `管理员${socket.data.identity.id.split('#')[0]}，欢迎回来`,
-        //                 info: true,
-        //                 admin: true
-        //             }));
-        //         } else return socket.emit('message:lobby', JSON.stringify({
-        //             sender: 'ALLTALE',
-        //             time: new Date().getTime(),
-        //             message: `登录凭据有误`,
-        //             warn: true
-        //         }));
-        //     }
-        // }
+        if (msg.startsWith('login')) {
+            let arr = msg.split('@')
+            if (arr.length === 3) {
+                console.log(process.env)
+                console.log(process.env.ALLTALE_ADMIN)
+                if (arr[1] === (process.env.ALLTALE_ADMIN || 'ADMIN') &&
+                    arr[2] === (process.env.ALLTALE_ADMIN_PWD || 'ADMIN')) {
+                    session.identity.id = `${arr[1]}#管理员`;
+                    session.identity.isAdmin = true;
+                    session.save();
+                    socket.data.identity = session.identity;
+                    socket.emit('user:update-info', socket.data.identity);
+                    return socket.emit('message:lobby', JSON.stringify({
+                        sender: 'ALLTALE',
+                        time: new Date().getTime(),
+                        message: `管理员${socket.data.identity.id.split('#')[0]}，欢迎回来`,
+                        info: true,
+                        admin: true
+                    }));
+                } else return socket.emit('message:lobby', JSON.stringify({
+                    sender: 'ALLTALE',
+                    time: new Date().getTime(),
+                    message: `登录凭据有误`,
+                    warn: true
+                }));
+            }
+        }
         io.emit('message:lobby', JSON.stringify({
             sender: socket.data.identity.id,
             time: new Date().getTime(),
