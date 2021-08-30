@@ -154,11 +154,11 @@ io.on('connection', (socket) => {
             time: new Date().getTime(),
             message: msg
         }));
-        io.emit('message:global', JSON.stringify({
-            sender: 'SERVER#TESTER',
-            time: new Date().getTime(),
-            message: msg.replace('?', '!').replace('？', '！').replace('你', '我').replace('吗', '')
-        }));
+        // io.emit('message:global', JSON.stringify({
+        //     sender: 'SERVER#TESTER',
+        //     time: new Date().getTime(),
+        //     message: msg.replace('?', '!').replace('？', '！').replace('你', '我').replace('吗', '')
+        // }));
         console.log(`Message from [${socket.id}]: ${msg}`);
     });
     socket.on('disconnect', () => {
