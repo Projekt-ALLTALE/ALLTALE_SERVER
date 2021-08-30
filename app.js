@@ -135,7 +135,7 @@ io.on('connection', (socket) => {
     io.emit('broadcast:online', JSON.stringify({
         online: io.of('/').sockets.size || null
     }));
-    console.log('🔈 Broadcast online: ', io.of('/').sockets.size)
+    console.log('🔈 Broadcast online: ', io.of('/').sockets.size);
 
     /* Welcome */
     socket.emit('message:lobby', JSON.stringify({
@@ -163,6 +163,10 @@ io.on('connection', (socket) => {
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
     socket.on('disconnect', () => {
+        io.emit('broadcast:online', JSON.stringify({
+            online: io.of('/').sockets.size || null
+        }));
+        console.log('🔈 Broadcast online: ', io.of('/').sockets.size);
         console.log(`❌ Client disconnected [${socket.id}]:[${socket.data.identity.id}]`);
     });
 });
