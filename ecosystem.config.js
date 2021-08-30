@@ -22,7 +22,7 @@ module.exports = {
             repo: 'git@github.com:Projekt-ALLTALE/ALLTALE_SERVER.git',
             path: '~/Project/ALLTALE_SERVER',
             'pre-deploy-local': '',
-            'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production',
+            'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production --update-env',
             'pre-setup': ''
         }
     }
