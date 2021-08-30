@@ -129,10 +129,15 @@ io.on('connection', (socket) => {
     /* Terminate other sockets has same identity */
     util.getSocketsByIdentity(socket.data.identity.id).forEach(existsSocket => {
         if (existsSocket.id !== socket.id) existsSocket.emit('session:conflict')
-    })
+    });
+
+    /* Online broadcast */
+    io.emit('broadcast:online', JSON.stringify({
+        online: io.of('/').sockets.length
+    }));
 
     /* Welcome */
-    socket.emit('message:global', JSON.stringify({
+    socket.emit('message:lobby', JSON.stringify({
         sender: 'ALLTALE',
         time: new Date().getTime(),
         message: `${socket.data.identity.id}，欢迎！`,
@@ -143,22 +148,17 @@ io.on('connection', (socket) => {
     socket.emit('user:update-info', socket.data.identity);
     console.log(`🔌 Client connected [${socket.id}]:[${socket.data.identity.id}]`);
     socket.on('message:send', async (msg) => {
-        if (!msg || msg.trim() === '') return socket.emit('message:global', JSON.stringify({
+        if (!msg || msg.trim() === '') return socket.emit('message:lobby', JSON.stringify({
             sender: 'ALLTALE',
             time: new Date().getTime(),
             message: '请不要发送空白消息',
             warn: true
         }));
-        io.emit('message:global', JSON.stringify({
+        io.emit('message:lobby', JSON.stringify({
             sender: socket.data.identity.id,
             time: new Date().getTime(),
             message: msg
         }));
-        // io.emit('message:global', JSON.stringify({
-        //     sender: 'SERVER#TESTER',
-        //     time: new Date().getTime(),
-        //     message: msg.replace('?', '!').replace('？', '！').replace('你', '我').replace('吗', '')
-        // }));
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
     socket.on('disconnect', () => {
