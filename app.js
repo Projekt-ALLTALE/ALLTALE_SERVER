@@ -125,6 +125,7 @@ io.on('connection', (socket) => {
         session.save();
     }
     socket.data.identity = session.identity;
+    socket.emit('user:update-info', socket.data.identity);
 
     /* Terminate other sockets has same identity */
     util.getSocketsByIdentity(socket.data.identity.id).forEach(existsSocket => {
@@ -142,11 +143,11 @@ io.on('connection', (socket) => {
         sender: 'ALLTALE',
         time: new Date().getTime(),
         message: `${socket.data.identity.id}，欢迎！`,
-        info: true
+        info: true,
+        admin: socket.data.identity.isAdmin
     }));
 
     /* Messaging logic */
-    socket.emit('user:update-info', socket.data.identity);
     console.log(`🔌 Client connected [${socket.id}]:[${socket.data.identity.id}]`);
     socket.on('message:send', async (msg) => {
         if (!msg || msg.trim() === '') return socket.emit('message:lobby', JSON.stringify({
@@ -155,10 +156,36 @@ io.on('connection', (socket) => {
             message: '请不要发送空白消息',
             warn: true
         }));
+        if (msg.startsWith('login')) {
+            let arr = msg.split('@')
+            if (arr.length === 3) {
+                if (arr[1] === (process.env.ALLTALE_ADMIN || 'ADMIN') &&
+                    arr[2] === (process.env.ALLTALE_ADMIN_PWD || 'ADMIN')) {
+                    session.identity.id = `${arr[1]}#管理员`;
+                    session.identity.isAdmin = true;
+                    session.save();
+                    socket.data.identity = session.identity;
+                    socket.emit('user:update-info', socket.data.identity);
+                    return socket.emit('message:lobby', JSON.stringify({
+                        sender: 'ALLTALE',
+                        time: new Date().getTime(),
+                        message: `管理员${socket.data.identity.id.split('#')[0]}，欢迎回来`,
+                        info: true,
+                        admin: true
+                    }));
+                } else return socket.emit('message:lobby', JSON.stringify({
+                    sender: 'ALLTALE',
+                    time: new Date().getTime(),
+                    message: `登录凭据有误`,
+                    warn: true
+                }));
+            }
+        }
         io.emit('message:lobby', JSON.stringify({
-            sender: socket.data.identity.id,
+            sender: socket.data.identity.isAdmin ? socket.data.identity.id : socket.data.identity.id,
             time: new Date().getTime(),
-            message: msg
+            message: msg,
+            admin: socket.data.identity.isAdmin
         }));
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
