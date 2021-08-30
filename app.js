@@ -159,6 +159,8 @@ io.on('connection', (socket) => {
         if (msg.startsWith('login')) {
             let arr = msg.split('@')
             if (arr.length === 3) {
+                console.log(process.env)
+                console.log(process.env.ALLTALE_ADMIN)
                 if (arr[1] === (process.env.ALLTALE_ADMIN || 'ADMIN') &&
                     arr[2] === (process.env.ALLTALE_ADMIN_PWD || 'ADMIN')) {
                     session.identity.id = `${arr[1]}#管理员`;
