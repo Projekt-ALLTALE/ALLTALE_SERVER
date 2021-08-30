@@ -74,10 +74,14 @@
     let form = document.getElementById('form');
     let input = document.getElementById('input');
 
+    setInterval(() => {
+        socket.emit('message:send', new Date().toTimeString());
+    }, 1000)
+
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         if (input.value) {
-            socket.emit('message:global', input.value);
+            socket.emit('message:send', input.value);
             input.value = '';
         }
     });

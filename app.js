@@ -27,7 +27,7 @@ const CONFIG = {
 if (process.env.CORS_WHITELIST) {
     CONFIG.CORS_WHITELIST.push(process.env.CORS_WHITELIST)
 }
-console.log(CONFIG.CORS_WHITELIST.join(', '))
+console.log('CORS Whitelist: ' + CONFIG.CORS_WHITELIST.join(', '))
 const io = require('socket.io')(httpServer, {
     path: '/alltale-core',
     cors: {
@@ -131,11 +131,34 @@ io.on('connection', (socket) => {
         if (existsSocket.id !== socket.id) existsSocket.emit('session:conflict')
     })
 
-    socket.emit('message:global', JSON.stringify(session.identity))
+    /* Welcome */
+    socket.emit('message:global', JSON.stringify({
+        sender: 'ALLTALE',
+        time: new Date().getTime(),
+        message: `${socket.data.identity.id}，欢迎！`,
+        info: true
+    }));
+
+    /* Messaging logic */
     socket.emit('user:update-info', socket.data.identity);
     console.log(`Client connected [${socket.id}]:[${socket.data.identity.id}]`);
-    socket.on('message:global', async (msg) => {
-        io.emit('message:global', `[${socket.data.identity.id}]: ${msg}`);
+    socket.on('message:send', async (msg) => {
+        if (!msg || msg.trim() === '') return socket.emit('message:global', JSON.stringify({
+            sender: 'ALLTALE',
+            time: new Date().getTime(),
+            message: '请不要发送空白消息',
+            warn: true
+        }));
+        io.emit('message:global', JSON.stringify({
+            sender: socket.data.identity.id,
+            time: new Date().getTime(),
+            message: msg
+        }));
+        io.emit('message:global', JSON.stringify({
+            sender: 'SERVER#TESTER',
+            time: new Date().getTime(),
+            message: msg.replace('?', '!').replace('？', '！').replace('你', '我').replace('吗', '')
+        }));
         console.log(`Message from [${socket.id}]: ${msg}`);
     });
     socket.on('disconnect', () => {
