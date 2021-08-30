@@ -141,7 +141,7 @@ io.on('connection', (socket) => {
 
     /* Messaging logic */
     socket.emit('user:update-info', socket.data.identity);
-    console.log(`Client connected [${socket.id}]:[${socket.data.identity.id}]`);
+    console.log(`🔌 Client connected [${socket.id}]:[${socket.data.identity.id}]`);
     socket.on('message:send', async (msg) => {
         if (!msg || msg.trim() === '') return socket.emit('message:global', JSON.stringify({
             sender: 'ALLTALE',
@@ -159,13 +159,13 @@ io.on('connection', (socket) => {
         //     time: new Date().getTime(),
         //     message: msg.replace('?', '!').replace('？', '！').replace('你', '我').replace('吗', '')
         // }));
-        console.log(`Message from [${socket.id}]: ${msg}`);
+        console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
     socket.on('disconnect', () => {
-        console.log(`Client disconnected [${socket.id}]`);
+        console.log(`❌ Client disconnected [${socket.id}]:[${socket.data.identity.id}]`);
     });
 });
 
 httpServer.listen(process.env.ALLTALE_PORT || 21611, () => {
-    console.log('ALLTALE is listening on *:21611');
+    console.log('🚀 ALLTALE is listening on *:21611');
 });
