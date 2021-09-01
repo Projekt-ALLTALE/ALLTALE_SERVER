@@ -91,6 +91,21 @@ class utils {
         return foundSockets.length > 0 ? foundSockets : null;
     }
 
+    getOnlineCountByRoom(room = '') {
+        return this.io.of(room).sockets.size || 0;
+    }
+
+    getOnlineMembersByRoom(room = '') {
+        let onlineMembers = []
+        for (const socket of this.io.of(room).sockets) {
+            onlineMembers.push({
+                id: socket[1].data.identity.id,
+                connectionId: socket[0]
+            })
+        }
+        return onlineMembers;
+    }
+
     cookieSign(val, secret) {
         if ('string' != typeof val) throw new TypeError("Cookie value must be provided as a string.");
         if ('string' != typeof secret) throw new TypeError("Secret string must be provided.");
@@ -134,9 +149,10 @@ io.on('connection', (socket) => {
 
     /* Online broadcast */
     io.emit('broadcast:online', JSON.stringify({
-        online: io.of('/').sockets.size || null
+        online: util.getOnlineCountByRoom(),
+        members: util.getOnlineMembersByRoom()
     }));
-    console.log('🔈 Broadcast online: ', io.of('/').sockets.size);
+    console.log('🔈 Broadcast online: ', util.getOnlineCountByRoom());
 
     /* Welcome */
     socket.emit('message:lobby', JSON.stringify({
@@ -191,9 +207,10 @@ io.on('connection', (socket) => {
     });
     socket.on('disconnect', () => {
         io.emit('broadcast:online', JSON.stringify({
-            online: io.of('/').sockets.size || null
+            online: util.getOnlineCountByRoom(),
+            members: util.getOnlineMembersByRoom()
         }));
-        console.log('🔈 Broadcast online: ', io.of('/').sockets.size);
+        console.log('🔈 Broadcast online: ', util.getOnlineCountByRoom());
         console.log(`❌ Client disconnected [${socket.id}]:[${socket.data.identity.id}]`);
     });
 });
