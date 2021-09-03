@@ -11,7 +11,7 @@ const randomWords = require('random-words')
 const crypto = require("crypto");
 const cookie = require("cookie");
 
-const pkg = require('package.json')
+require('pkginfo')(module, 'name', 'version')
 
 const CONFIG = {
     CORS_WHITELIST: [
@@ -26,9 +26,9 @@ const CONFIG = {
         domain: process.env.ALLTALE_HOST || '192.168.59.1',
     },
     SERVER_INFO: {
-        name: pkg.name || 'alltale-server',
-        region: 'default',
-        version: pkg.version || 'unstable',
+        name: exports["name"] || 'unstable-official-server',
+        region: 'unstable',
+        version: exports["version"] || 'unstable',
     }
 }
 
