@@ -10,10 +10,8 @@ module.exports = {
             ALLTALE_HOST: 'alltale.i0x0i.ltd',
             ALLTALE_PORT: 29999,
             CORS_WHITELIST: ['http://alltale.i0x0i.ltd:29998'],
-            SERVER_INFO: {
-                name: 'official-server',
-                region: 'official'
-            }
+            ALLTALE_SERVER_NAME: 'official-server',
+            ALLTALE_REGION: 'official',
         }
     }],
 
@@ -26,7 +24,7 @@ module.exports = {
             repo: 'git@github.com:Projekt-ALLTALE/ALLTALE_SERVER.git',
             path: '~/Project/ALLTALE_SERVER',
             'pre-deploy-local': '',
-            'post-deploy': 'source /etc/profile && npm install && pm2 reload ecosystem.config.js --env production',
+            'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production',
             'pre-setup': ''
         }
     }

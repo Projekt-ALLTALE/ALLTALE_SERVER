@@ -26,9 +26,9 @@ const CONFIG = {
         domain: process.env.ALLTALE_HOST || '192.168.59.1',
     },
     SERVER_INFO: {
-        name: exports["name"] || 'unstable-official-server',
-        region: 'unstable',
-        version: exports["version"] || 'unstable',
+        name: process.env.ALLTALE_SERVER_NAME || exports["name"] || 'unstable-official-server',
+        region: process.env.ALLTALE_REGION || 'unstable',
+        version: process.env.ALLTALE_VERSION || exports["version"] || 'unstable',
     }
 }
 
@@ -36,11 +36,6 @@ if (process.env.CORS_WHITELIST) {
     CONFIG.CORS_WHITELIST.push(process.env.CORS_WHITELIST)
 }
 console.log('CORS Whitelist: ' + CONFIG.CORS_WHITELIST.join(', '))
-
-if (process.env.SERVER_INFO) {
-    CONFIG.SERVER_INFO = {...CONFIG.SERVER_INFO, ...process.env.SERVER_INFO}
-    console.log(CONFIG.SERVER_INFO)
-}
 
 // noinspection JSValidateTypes
 const io = require('socket.io')(httpServer, {
