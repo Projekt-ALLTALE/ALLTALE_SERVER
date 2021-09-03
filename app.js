@@ -39,6 +39,7 @@ console.log('CORS Whitelist: ' + CONFIG.CORS_WHITELIST.join(', '))
 
 if (process.env.SERVER_INFO) {
     CONFIG.SERVER_INFO = {...CONFIG.SERVER_INFO, ...process.env.SERVER_INFO}
+    console.log(CONFIG.SERVER_INFO)
 }
 
 // noinspection JSValidateTypes
