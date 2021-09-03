@@ -11,6 +11,8 @@ const randomWords = require('random-words')
 const crypto = require("crypto");
 const cookie = require("cookie");
 
+const pkg = require('package.json')
+
 const CONFIG = {
     CORS_WHITELIST: [
         'http://192.168.59.1:21627',
@@ -22,12 +24,24 @@ const CONFIG = {
         // maxAge: 60000,
         httpOnly: false,
         domain: process.env.ALLTALE_HOST || '192.168.59.1',
+    },
+    SERVER_INFO: {
+        name: pkg.name || 'alltale-server',
+        region: 'default',
+        version: pkg.version || 'unstable',
     }
 }
+
 if (process.env.CORS_WHITELIST) {
     CONFIG.CORS_WHITELIST.push(process.env.CORS_WHITELIST)
 }
 console.log('CORS Whitelist: ' + CONFIG.CORS_WHITELIST.join(', '))
+
+if (process.env.SERVER_INFO) {
+    CONFIG.SERVER_INFO = {...CONFIG.SERVER_INFO, ...process.env.SERVER_INFO}
+}
+
+// noinspection JSValidateTypes
 const io = require('socket.io')(httpServer, {
     path: '/alltale-core',
     cors: {
@@ -122,6 +136,9 @@ const util = new utils(io)
 io.on('connection', (socket) => {
     const session = socket.request.session;
 
+    /* Send server info */
+    socket.emit('session:server-info', CONFIG.SERVER_INFO);
+
     /* Send cookie */
     socket.emit('session:update-cookie', cookie.serialize(
         CONFIG.sessionMiddlewareCookieName,
@@ -172,6 +189,7 @@ io.on('connection', (socket) => {
             message: '请不要发送空白消息',
             warn: true
         }));
+        // TODO: Authentication
         // if (msg.startsWith('login')) {
         //     let arr = msg.split('@')
         //     if (arr.length === 3) {
