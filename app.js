@@ -190,8 +190,8 @@ io.on('connection', (socket) => {
     }));
 
     /* Recent messages */
-    recentMessage.lobby.forEach(message => io.emit('message:lobby', message));
-    if (recentMessage.lobby.length > 0) io.emit('message:lobby', JSON.stringify({
+    recentMessage.lobby.forEach(message => socket.emit('message:lobby', message));
+    if (recentMessage.lobby.length > 0) socket.emit('message:lobby', JSON.stringify({
         sender: '以上是历史消息',
         time: new Date().getTime(),
         message: ``,
