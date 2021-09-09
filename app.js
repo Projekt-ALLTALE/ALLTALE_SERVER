@@ -135,6 +135,9 @@ class utils {
 
 const util = new utils(io)
 
+const recentMessage = {
+    lobby: []
+}
 const typingMember = {
     lobby: []
 }
@@ -186,6 +189,15 @@ io.on('connection', (socket) => {
         admin: socket.data.identity.isAdmin
     }));
 
+    /* Recent messages */
+    recentMessage.lobby.forEach(message => io.emit('message:lobby', message));
+    if (recentMessage.lobby.length > 0) io.emit('message:lobby', JSON.stringify({
+        sender: '以上是历史消息',
+        time: new Date().getTime(),
+        message: ``,
+        info: true
+    }));
+
     /* Messaging logic */
     console.log(`🔌 Client connected [${socket.id}]:[${socket.data.identity.id}]`);
     socket.on('message:send', async (msg) => {
@@ -227,6 +239,13 @@ io.on('connection', (socket) => {
             message: msg,
             admin: socket.data.identity.isAdmin
         }));
+        recentMessage.lobby.push(JSON.stringify({
+            sender: socket.data.identity.id,
+            time: new Date().getTime(),
+            message: msg,
+            admin: socket.data.identity.isAdmin
+        }));
+        if (recentMessage.lobby.length > 50) recentMessage.lobby = recentMessage.lobby.slice(1, recentMessage.lobby.length);
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
 
