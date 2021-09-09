@@ -253,6 +253,12 @@ io.on('connection', (socket) => {
         }));
         console.log('🔈 Broadcast online: ', util.getOnlineCountByRoom());
         console.log(`❌ Client disconnected [${socket.id}]:[${socket.data.identity.id}]`);
+        // Clear typing state
+        typingMember.lobby.remove(socket.data.identity.id)
+        io.emit('session:typing', JSON.stringify({
+            room: '/',
+            members: typingMember.lobby
+        }))
     });
 });
 
