@@ -15,15 +15,15 @@ require('pkginfo')(module, 'name', 'version')
 
 const CONFIG = {
     CORS_WHITELIST: [
-        'http://192.168.59.1:21627',
-        'http://192.168.59.1:3000'
+        'http://192.168.0.106:21627',
+        'http://192.168.0.106:3000'
     ],
     sessionMiddlewareCookieName: 'ALLTALE_SESSION',
     sessionMiddlewareCookieSecret: 'ALLTALE',
     sessionMiddlewareCookieOptions: {
         // maxAge: 60000,
         httpOnly: false,
-        domain: process.env.ALLTALE_HOST || '192.168.59.1',
+        domain: process.env.ALLTALE_HOST || '192.168.0.106',
     },
     SERVER_INFO: {
         name: process.env.ALLTALE_SERVER_NAME || exports["name"] || 'unstable-official-server',
@@ -69,6 +69,13 @@ function rdm(min = 0, max = 1, fix = 2) {
     let range = Math.random() * ratio;
     return parseFloat((range + min).toFixed(fix));
 }
+
+Array.prototype.remove = function (val) {
+    let index = this.indexOf(val);
+    if (index > -1) {
+        this.splice(index, 1);
+    }
+};
 
 io.engine.generateId = (req) => {
     return uuid.v4();
@@ -128,6 +135,10 @@ class utils {
 
 const util = new utils(io)
 
+const typingMember = {
+    lobby: []
+}
+
 io.on('connection', (socket) => {
     const session = socket.request.session;
 
@@ -168,7 +179,7 @@ io.on('connection', (socket) => {
 
     /* Welcome */
     socket.emit('message:lobby', JSON.stringify({
-        sender: 'ALLTALE',
+        sender: '[ALLTALE]',
         time: new Date().getTime(),
         message: `${socket.data.identity.id}，欢迎！`,
         info: true,
@@ -218,6 +229,23 @@ io.on('connection', (socket) => {
         }));
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
+
+    /* Typing notice */
+    socket.on('session:typing-start', () => {
+        if (typingMember.lobby.indexOf(socket.data.identity.id) === -1) typingMember.lobby.push(socket.data.identity.id)
+        io.emit('session:typing', JSON.stringify({
+            room: '/',
+            members: typingMember.lobby
+        }))
+    })
+    socket.on('session:typing-finish', () => {
+        typingMember.lobby.remove(socket.data.identity.id)
+        io.emit('session:typing', JSON.stringify({
+            room: '/',
+            members: typingMember.lobby
+        }))
+    })
+
     socket.on('disconnect', () => {
         io.emit('broadcast:online', JSON.stringify({
             online: util.getOnlineCountByRoom(),
