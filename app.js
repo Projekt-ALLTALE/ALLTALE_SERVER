@@ -6,6 +6,13 @@ const app = express();
 const http = require('http');
 const httpServer = http.createServer(app);
 
+const Mongo = require('mongodb').MongoClient;
+let recentMessageDb = null;
+Mongo.connect('mongodb://alltale.i0x0i.ltd:27017/alltale-dev', (err, db) => {
+    if (err) throw err;
+    recentMessageDb = db.db().collection('recentMessage')
+});
+
 const uuid = require('uuid');
 const randomWords = require('random-words')
 const crypto = require("crypto");
@@ -135,9 +142,9 @@ class utils {
 
 const util = new utils(io)
 
-const recentMessage = {
-    lobby: []
-}
+// const recentMessage = {
+//     lobby: []
+// }
 const typingMember = {
     lobby: []
 }
@@ -190,13 +197,16 @@ io.on('connection', (socket) => {
     }));
 
     /* Recent messages */
-    recentMessage.lobby.forEach(message => socket.emit('message:lobby', message));
-    if (recentMessage.lobby.length > 0) socket.emit('message:lobby', JSON.stringify({
-        sender: '以上是历史消息',
-        time: new Date().getTime(),
-        message: ``,
-        info: true
-    }));
+    recentMessageDb.find({}).sort({time: -1}).limit(100).toArray(async (err, res) => {
+        if (err) throw err;
+        res.reverse().forEach(message => socket.emit('message:lobby', JSON.stringify(message)));
+        if (res.length > 0) socket.emit('message:lobby', JSON.stringify({
+            sender: '以上是历史消息',
+            time: new Date().getTime(),
+            message: ``,
+            info: true
+        }));
+    });
 
     /* Messaging logic */
     console.log(`🔌 Client connected [${socket.id}]:[${socket.data.identity.id}]`);
@@ -239,13 +249,15 @@ io.on('connection', (socket) => {
             message: msg,
             admin: socket.data.identity.isAdmin
         }));
-        recentMessage.lobby.push(JSON.stringify({
+        recentMessageDb.insertOne({
             sender: socket.data.identity.id,
             time: new Date().getTime(),
             message: msg,
             admin: socket.data.identity.isAdmin
-        }));
-        if (recentMessage.lobby.length > 50) recentMessage.lobby = recentMessage.lobby.slice(1, recentMessage.lobby.length);
+        }, (err, res) => {
+            if (err) throw err;
+            console.log('📕 Insert to mongo: ', res.insertedId)
+        });
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
 
