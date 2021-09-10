@@ -8,10 +8,12 @@ const httpServer = http.createServer(app);
 
 const Mongo = require('mongodb').MongoClient;
 let recentMessageDb = null;
-Mongo.connect('mongodb://alltale.i0x0i.ltd:27017/alltale-dev', (err, db) => {
-    if (err) throw err;
-    recentMessageDb = db.db().collection('recentMessage')
-});
+Mongo.connect(`mongodb://alltale.i0x0i.ltd:27017/${(process.env.NODE_ENV === 'production') ? 'alltale' : 'alltale-dev'}`,
+    (err, db) => {
+        if (err) throw err;
+        recentMessageDb = db.db().collection('recentMessage')
+    }
+);
 
 const uuid = require('uuid');
 const randomWords = require('random-words')
