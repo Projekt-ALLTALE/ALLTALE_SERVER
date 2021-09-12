@@ -191,7 +191,7 @@ io.on('connection', (socket) => {
     socket.emit('message:lobby', SystemMessage.Info(`${socket.data.identity.id}，欢迎！`));
 
     /* Recent messages */
-    recentMessageDb.find({}).sort({time: -1}).limit(100).toArray(async (err, res) => {
+    recentMessageDb?.find({}).sort({time: -1}).limit(100).toArray(async (err, res) => {
         if (err) throw err;
         res.reverse().forEach(message => socket.emit('message:lobby', JSON.stringify(message)));
         if (res.length > 0) socket.emit('message:lobby', SystemMessage.Info('', '以上是历史消息'));
@@ -229,7 +229,7 @@ io.on('connection', (socket) => {
         // }
         const message = ChatMessage(socket.data.identity.id, msg, socket.data.identity.isAdmin, false);
         io.emit('message:lobby', message.stringify());
-        recentMessageDb.insertOne(message.raw());
+        recentMessageDb?.insertOne(message.raw());
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
 
