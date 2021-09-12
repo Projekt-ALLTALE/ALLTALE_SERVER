@@ -22,17 +22,19 @@ const cookie = require("cookie");
 
 require('pkginfo')(module, 'name', 'version')
 
+const {ChatMessage, SystemMessage} = require('./lib/beans/MessageModel')
+
 const CONFIG = {
     CORS_WHITELIST: [
-        'http://192.168.0.106:21627',
-        'http://192.168.0.106:3000'
+        'http://127.0.0.1:21627',
+        'http://127.0.0.1:3000'
     ],
     sessionMiddlewareCookieName: 'ALLTALE_SESSION',
     sessionMiddlewareCookieSecret: 'ALLTALE',
     sessionMiddlewareCookieOptions: {
         // maxAge: 60000,
         httpOnly: false,
-        domain: process.env.ALLTALE_HOST || '192.168.0.106',
+        domain: process.env.ALLTALE_HOST || '127.0.0.1',
     },
     SERVER_INFO: {
         name: process.env.ALLTALE_SERVER_NAME || exports["name"] || 'unstable-official-server',
@@ -108,7 +110,6 @@ class utils {
     getSocketsByIdentity(id, room = '') {
         let foundSockets = []
         for (const socket of this.io.of(room).sockets) {
-            // console.log(socket[0])
             if (socket[1].data.identity) {
                 if (socket[1].data.identity.id === id) foundSockets.push(socket[1]);
             }
@@ -144,9 +145,6 @@ class utils {
 
 const util = new utils(io)
 
-// const recentMessage = {
-//     lobby: []
-// }
 const typingMember = {
     lobby: []
 }
@@ -190,35 +188,19 @@ io.on('connection', (socket) => {
     console.log('🔈 Broadcast online: ', util.getOnlineCountByRoom());
 
     /* Welcome */
-    socket.emit('message:lobby', JSON.stringify({
-        sender: '[ALLTALE]',
-        time: new Date().getTime(),
-        message: `${socket.data.identity.id}，欢迎！`,
-        info: true,
-        admin: socket.data.identity.isAdmin
-    }));
+    socket.emit('message:lobby', SystemMessage.Info(`${socket.data.identity.id}，欢迎！`));
 
     /* Recent messages */
     recentMessageDb.find({}).sort({time: -1}).limit(100).toArray(async (err, res) => {
         if (err) throw err;
         res.reverse().forEach(message => socket.emit('message:lobby', JSON.stringify(message)));
-        if (res.length > 0) socket.emit('message:lobby', JSON.stringify({
-            sender: '以上是历史消息',
-            time: new Date().getTime(),
-            message: ``,
-            info: true
-        }));
+        if (res.length > 0) socket.emit('message:lobby', SystemMessage.Info('', '以上是历史消息'));
     });
 
     /* Messaging logic */
     console.log(`🔌 Client connected [${socket.id}]:[${socket.data.identity.id}]`);
     socket.on('message:send', async (msg) => {
-        if (!msg || msg.trim() === '') return socket.emit('message:lobby', JSON.stringify({
-            sender: 'ALLTALE',
-            time: new Date().getTime(),
-            message: '请不要发送空白消息',
-            warn: true
-        }));
+        if (!msg || msg.trim() === '') return socket.emit('message:lobby', SystemMessage.Warn('请不要发送空白消息'));
         // TODO: Authentication
         // if (msg.startsWith('login')) {
         //     let arr = msg.split('@')
@@ -245,21 +227,9 @@ io.on('connection', (socket) => {
         //         }));
         //     }
         // }
-        io.emit('message:lobby', JSON.stringify({
-            sender: socket.data.identity.id,
-            time: new Date().getTime(),
-            message: msg,
-            admin: socket.data.identity.isAdmin
-        }));
-        recentMessageDb.insertOne({
-            sender: socket.data.identity.id,
-            time: new Date().getTime(),
-            message: msg,
-            admin: socket.data.identity.isAdmin
-        }, (err, res) => {
-            if (err) throw err;
-            console.log('📕 Insert to mongo: ', res.insertedId)
-        });
+        const message = ChatMessage(socket.data.identity.id, msg, socket.data.identity.isAdmin, false);
+        io.emit('message:lobby', message.stringify());
+        recentMessageDb.insertOne(message);
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
 
