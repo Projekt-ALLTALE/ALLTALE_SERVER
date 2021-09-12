@@ -229,7 +229,7 @@ io.on('connection', (socket) => {
         // }
         const message = ChatMessage(socket.data.identity.id, msg, socket.data.identity.isAdmin, false);
         io.emit('message:lobby', message.stringify());
-        recentMessageDb.insertOne(message);
+        recentMessageDb.insertOne(message.raw());
         console.log(`✉ Message from [${socket.id}]:[${socket.data.identity.id}]: ${msg}`);
     });
 
