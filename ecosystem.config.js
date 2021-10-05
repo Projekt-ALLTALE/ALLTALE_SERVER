@@ -11,7 +11,7 @@ module.exports = {
             ALLTALE_PORT: 29999,
             CORS_WHITELIST: ['http://alltale.i0x0i.ltd:29998'],
             ALLTALE_SERVER_NAME: 'official-server',
-            ALLTALE_REGION: 'official',
+            ALLTALE_REGION: 'CN-chengdu',
         }
     }],
 
